@@ -1,6 +1,6 @@
-const {db} = require('./connection');
+const {db} = require('../connection');
 
-const viewEmployees = () => {
+const viewEmployee = () => {
     db.query(`SELECT
      employee.id, 
      employee.first_name AS 'First Name', 

@@ -1,16 +1,20 @@
 const {db} = require('../connection');
 
-const viewDepartment = () => {
+const viewRole = () => {
     db.query(`
     SELECT
-    department.id AS 'ID',
+    role.id AS 'ID',
+    role.title AS 'Title',
+    role.salary AS 'Salary',
     department.name AS 'Department'
-    FROM department;`,
+    FROM role
+    JOIN department ON role.department_id = department.id;`,
     (err, resutls) => {
         if (err) {
             console.log(err);
         }
-        console.log ('Here are the departments:');
+        console.log ('Here are the roles:');
         console.table(resutls);
         console.log('press up or down to continue');
-});}
+});};
+
