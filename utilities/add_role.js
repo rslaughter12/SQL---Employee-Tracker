@@ -1,5 +1,6 @@
-const inquirer = require('inquirer');
+const inquirer = await import('inquirer');
 const mysql = require('mysql');
+const util = require('util');
 
 // create a MySQL connection
 const connection = mysql.createConnection({
@@ -8,6 +9,9 @@ const connection = mysql.createConnection({
   password: 'password',
   database: 'your_database_name',
 });
+
+// promisify the connection.query method so we can use async/await
+const queryAsync = util.promisify(connection.query).bind(connection);
 
 // prompt the user for role information
 inquirer
@@ -30,30 +34,29 @@ inquirer
       type: 'list',
       name: 'department_id',
       message: 'Select the department of the new role:',
-      choices: function() {
+      choices: async function () {
         // get the list of available departments from the database
-        return new Promise(function(resolve, reject) {
-          const sql = `SELECT id, department_name FROM departments`;
-          connection.query(sql, function (error, results, fields) {
-            if (error) reject(error);
-            const choices = results.map(function(department) {
-              return {
-                name: department.department_name,
-                value: department.id,
-              };
-            });
-            resolve(choices);
-          });
+        const sql = `SELECT id, department_name FROM departments`;
+        const departments = await queryAsync(sql);
+        const choices = departments.map(function (department) {
+          return {
+            name: department.department_name,
+            value: department.id,
+          };
         });
+        return choices;
       },
     },
   ])
-  .then(function (answers) {
+  .then(async function (answers) {
     // insert the new role into the database
-    const sql = `INSERT INTO roles (title, salary, department_id) VALUES ('${answers.title}', ${answers.salary}, ${answers.department_id})`;
-    connection.query(sql, function (error, results, fields) {
-      if (error) throw error;
-      console.log(`Role "${answers.title}" added successfully!`);
-      connection.end();
-    });
+    const sql = `INSERT INTO roles (title, salary, department_id) VALUES (?, ?, ?)`;
+    const params = [answers.title, answers.salary, answers.department_id];
+    const result = await queryAsync(sql, params);
+    console.log(`Role "${answers.title}" added successfully!`);
+    connection.end();
+  })
+  .catch(function (error) {
+    console.error(error);
+    connection.end();
   });

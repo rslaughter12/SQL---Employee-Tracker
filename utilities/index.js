@@ -35,3 +35,4 @@ const init = async () => {
             console.log('Goodbye');
             process.exit();
     }};
+    export default init();

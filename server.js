@@ -1,6 +1,12 @@
-const {init} = require('./utilities/index.js');
+import  init  from './utilities/index.js';
+import inquirer from 'inquirer';
+import dotenv from 'dotenv';
 
+dotenv.config();
 console.log('Welcome to the Employee Tracker!');
 
-
-init();
+try {
+  init();
+} catch (error) {
+  console.error(error);
+}
